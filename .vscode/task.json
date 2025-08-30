@@ -1,0 +1,40 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build: All",
+            "detail": "",
+            "type": "shell",
+            "command": "source /opt/ros/humble/setup.bash && export MAKEFLAGS='-j 2' && colcon build --cmake-args=-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON --cmake-args=-DCMAKE_BUILD_TYPE=release --parallel-workers 2",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build: Package",
+            "detail": "",
+            "type": "shell",
+            "command": "source /opt/ros/humble/setup.bash && export MAKEFLAGS='-j 2' && colcon build --cmake-args=-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON --parallel-workers 2 --packages-select ${input:package_name}",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build: All+Test",
+            "detail": "",
+            "type": "shell",
+            "command": "source /opt/ros/humble/setup.bash && export MAKEFLAGS='-j 2' && colcon build --cmake-args=-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON --parallel-workers 2 && colcon test; colcon test-result --all --verbose",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ],
+    "inputs": [{
+        "id": "package_name",
+        "type": "promptString",
+        "description": "Package name to be used."
+    }]
+}
