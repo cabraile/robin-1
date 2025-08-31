@@ -1,0 +1,61 @@
+{
+    "name": "ROS 2 Development Container",
+    "privileged": true,
+    "remoteUser": "dev",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "args": {
+            "USERNAME": "dev"
+        }
+    },
+    "workspaceFolder": "/home/dev/workspace",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/home/dev/workspace,type=bind",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "donjayamanne.python-extension-pack",
+                "eamodio.gitlens",
+                "matepek.vscode-catch2-test-adapter",
+                "ms-iot.vscode-ros",
+                "ms-vscode.cpptools",
+                "ms-vscode.cpptools-themes",
+                "ms-vscode.cpptools-extension-pack",
+                "ms-iot.vscode-ros",
+                "twxs.cmake",
+                "vsciot-vscode.vscode-arduino"
+            ]
+        },
+        "settings": {
+            "terminal.integrated.defaultProfile.linux": "bash",
+            "arduino.path": "/root/bin",
+            "arduino.useArduinoCli": true
+        },
+        "terminal.integrated.profiles.linux": {
+            "bash": {
+                "path": "/bin/bash"
+            }
+        },
+    },
+    "containerEnv": {
+        "DISPLAY": "unix:0",
+        "ROS_AUTOMATIC_DISCOVERY_RANGE": "LOCALHOST",
+        "ROS_DOMAIN_ID": "42"
+    },
+    "runArgs": [
+        "--net=host",
+        "-e",
+        "DISPLAY=:0",
+        "-e",
+        "WAYLAND_DISPLAY",
+        "--device=/dev/ttyUSB0",
+        "--device=/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0",
+        "-v",
+        "/dev:/dev",
+        "--privileged",
+        "--user",
+        "dev"
+    ],
+    "mounts": [
+        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
+    ],
+}
