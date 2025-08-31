@@ -47,8 +47,13 @@ RUN pip install --upgrade pip && pip install \
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 RUN groupadd --gid $USER_GID $USERNAME && \
-useradd --uid $USER_UID --gid $USER_GID -m $USERNAME && \
-chown -R $USERNAME:$USERNAME /home/$USERNAME
+        useradd --uid $USER_UID --gid $USER_GID -m $USERNAME && \
+        chown -R $USERNAME:$USERNAME /home/$USERNAME
+
+# Add user to dialout
+RUN groupadd -r dialout || true && \
+    usermod -aG dialout ${USERNAME}
+
 RUN chsh -s /bin/bash $USERNAME
 USER $USERNAME
 WORKDIR /home/$USERNAME/workspace
