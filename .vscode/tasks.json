@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build: All",
+            "label": "Colcon Build: All",
             "detail": "",
             "type": "shell",
             "command": "source /opt/ros/humble/setup.bash && export MAKEFLAGS='-j 2' && colcon build --cmake-args=-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON --cmake-args=-DCMAKE_BUILD_TYPE=release --parallel-workers 2",
@@ -12,7 +12,7 @@
             }
         },
         {
-            "label": "Build: Package",
+            "label": "Colcon Build: Package",
             "detail": "",
             "type": "shell",
             "command": "source /opt/ros/humble/setup.bash && export MAKEFLAGS='-j 2' && colcon build --cmake-args=-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON --parallel-workers 2 --packages-select ${input:package_name}",
@@ -22,7 +22,7 @@
             }
         },
         {
-            "label": "Build: All+Test",
+            "label": "Colcon Build: All+Test",
             "detail": "",
             "type": "shell",
             "command": "source /opt/ros/humble/setup.bash && export MAKEFLAGS='-j 2' && colcon build --cmake-args=-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON --parallel-workers 2 && colcon test; colcon test-result --all --verbose",
@@ -30,7 +30,16 @@
                 "kind": "build",
                 "isDefault": true
             }
-        }
+        },
+        {
+            "label": "Arduino: Build+Upload",
+            "type": "shell",
+            "command": "just arduino-build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
     ],
     "inputs": [{
         "id": "package_name",

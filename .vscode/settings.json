@@ -1,5 +1,5 @@
 {
-    "cmake.sourceDirectory": "/home/ws/src/cabot_ros2",
+    "cmake.sourceDirectory": "/home/ws/src/robin_ros2",
     "cmake.buildDirectory": "${workspaceFolder}/build",
     "C_Cpp.intelliSenseEngine": "default",
     "C_Cpp.default.cStandard": "c99",
@@ -10,14 +10,14 @@
     "cmake.ignoreCMakeListsMissing": true,
     "ros.distro": "humble",
     "python.autoComplete.extraPaths": [
-        "/home/dev/workspace/install/cabot_ros2/lib/python3.10/site-packages",
-        "/home/dev/workspace/install/cabot_perception_py/lib/python3.10/site-packages",
+        "/home/dev/workspace/install/robin_ros2/lib/python3.10/site-packages",
+        "/home/dev/workspace/install/robin_perception_py/lib/python3.10/site-packages",
         "/opt/ros/humble/lib/python3.10/site-packages",
         "/opt/ros/humble/local/lib/python3.10/dist-packages"
     ],
     "python.analysis.extraPaths": [
-        "/home/dev/workspace/install/cabot_ros2/lib/python3.10/site-packages",
-        "/home/dev/workspace/install/cabot_perception_py/lib/python3.10/site-packages",
+        "/home/dev/workspace/install/robin_ros2/lib/python3.10/site-packages",
+        "/home/dev/workspace/install/robin_perception_py/lib/python3.10/site-packages",
         "/opt/ros/humble/lib/python3.10/site-packages",
         "/opt/ros/humble/local/lib/python3.10/dist-packages"
     ],
