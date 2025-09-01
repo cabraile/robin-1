@@ -6,7 +6,7 @@
             "detail": "",
             "type": "shell",
             "command":
-                "source /opt/ros/humble/setup.bash && export MAKEFLAGS='-j 2' && colcon build  --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --cmake-args=-DCMAKE_BUILD_TYPE=release --parallel-workers 2",
+                "source /opt/ros/humble/setup.bash && export MAKEFLAGS='-j 2' && colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --cmake-args=-DCMAKE_BUILD_TYPE=release --parallel-workers 2",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -17,7 +17,7 @@
             "detail": "",
             "type": "shell",
             "command":
-                "source /opt/ros/humble/setup.bash && export MAKEFLAGS='-j 2' && colcon build  --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --parallel-workers 2 --packages-select ${input:package_name}",
+                "source /opt/ros/humble/setup.bash && export MAKEFLAGS='-j 2' && colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --parallel-workers 2 --packages-select ${input:package_name}",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -28,7 +28,7 @@
             "detail": "",
             "type": "shell",
             "command":
-                "source /opt/ros/humble/setup.bash && export MAKEFLAGS='-j 2' && colcon build  --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --parallel-workers 2 && colcon test; colcon test-result --all --verbose",
+                "source /opt/ros/humble/setup.bash && export MAKEFLAGS='-j 2' && colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --parallel-workers 2 && colcon test; colcon test-result --all --verbose",
             "group": {
                 "kind": "build",
                 "isDefault": true

@@ -10,6 +10,8 @@ using Vector3    = Eigen::Vector3d;
 using Pose3      = Eigen::Isometry3d;
 using Quaternion = Eigen::Quaterniond;
 
+void dummy();
+
 } // namespace robin_core
 
 #endif

@@ -8,6 +8,8 @@
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>Eigen3</depend>
+  <depend>robin_firmware_cpp</depend>
   <test_depend>ament_cmake_gtest</test_depend>
 
   <export>
