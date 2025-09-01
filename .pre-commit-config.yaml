@@ -18,3 +18,17 @@ repos:
     rev: v0.4.0
     hooks:
       - id: ruff
+  
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v16.0.6   # match your clang-format version
+    hooks:
+      - id: clang-format
+        files: \.(cpp|hpp|cc|h)$
+
+  - repo: local
+    hooks:
+      - id: clang-tidy
+        name: clang-tidy
+        entry: bash -c 'clang-tidy $(git diff --cached --name-only --diff-filter=ACM | grep -E "\.(cpp|cc)$") -- -Iinclude || true'
+        language: system
+        pass_filenames: false

@@ -36,7 +36,7 @@ FROM arduino AS dev
 
 ARG USERNAME=dev
 ENV USERNAME=$USERNAME
-RUN apt update && apt install -y bash bash-completion
+RUN apt update && apt install -y bash bash-completion clang-tidy clang-format
 RUN curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
 
 # Python Dev
@@ -46,6 +46,8 @@ RUN pip install --upgrade pip && pip install \
     mypy \
     flake8 \
     isort
+
+RUN pip install pre-commit && /home/dev/.local/bin/pre-commit install
 
 # Set up a non-root user
 ARG USER_UID=1000
@@ -72,6 +74,7 @@ WORKDIR /home/$USERNAME/workspace
 
 RUN echo "source /etc/bash_completion" >> /home/$USERNAME/.bashrc \
         &&  echo "source /opt/ros/humble/setup.bash" >> /home/$USERNAME/.bashrc \
+        &&  echo "export PATH=${PATH}:/home/dev/.local/bin" >> /home/$USERNAME/.bashrc \
         &&  echo "export PATH=$PATH:/usr/local/bin"
 
 RUN chown $USERNAME:$USERNAME /home/$USERNAME/.bashrc
