@@ -29,8 +29,8 @@ class Interface
                            const robin_firmware::MotorCommand& right_motor_cmd)
     {
         std::lock_guard<std::mutex> lock(serial_mutex_);
-        const char cmd_byte[2]{robin_firmware::CMD_ACTIVATE_MOTOR_MASK,
-                               encodeMotorCmdToByte(left_motor_cmd, right_motor_cmd)};
+        const char                  cmd_byte[2]{robin_firmware::CMD_ACTIVATE_MOTOR_MASK,
+                                                encodeMotorCmdToByte(left_motor_cmd, right_motor_cmd)};
         boost::asio::write(serial_, boost::asio::buffer(cmd_byte, 2));
         return true;
     }

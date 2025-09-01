@@ -1,11 +1,12 @@
 #include <rclcpp/rclcpp.hpp>
 #include <robin_firmware_cpp/interface.hpp>
 
+#include <string_view>
 namespace
 {
-constexpr int     QUEUE_SIZE            = 10;
-constexpr int     SPIN_FREQUENCY_HZ     = 30;
-const std::string ROBIN_ROS2_NODE_NAME = "robin_executor_ros_node";
+constexpr int              QUEUE_SIZE           = 10;
+constexpr int              SPIN_FREQUENCY_HZ    = 30;
+constexpr std::string_view ROBIN_ROS2_NODE_NAME = "robin_executor_ros_node";
 } // namespace
 
 namespace robin
@@ -29,6 +30,11 @@ class RobinExecutorRosNode : public rclcpp::Node
     {
         firmware_interface_.sendMotorCommands({}, {});
     }
+
+    RobinExecutorRosNode(const RobinExecutorRosNode&)            = delete;
+    RobinExecutorRosNode& operator=(const RobinExecutorRosNode&) = delete;
+    RobinExecutorRosNode(RobinExecutorRosNode&&)                 = delete;
+    RobinExecutorRosNode& operator=(RobinExecutorRosNode&&)      = delete;
 
   private:
     robin_firmware::Interface    firmware_interface_{};
