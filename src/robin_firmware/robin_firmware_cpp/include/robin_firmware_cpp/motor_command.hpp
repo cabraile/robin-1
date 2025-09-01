@@ -42,8 +42,7 @@ void decodeMotorCmdBytes(const char cmd, MotorCommand& motor_left, MotorCommand&
 /// @returns The encoded command.
 char encodeMotorCmdToByte(const MotorCommand& cmd)
 {
-    constexpr char NUM_DISCRETIZATION_VALUES = (MOTOR_COMMAND_INTENSITY_MASK + 1);
-    const char     direction_bit             = (cmd.rotate_forward) ? MOTOR_COMMAND_DIRECTION_MASK : 0b00000000;
+    const char direction_bit  = (cmd.rotate_forward) ? MOTOR_COMMAND_DIRECTION_MASK : 0b00000000;
     const char intensity_byte = MOTOR_COMMAND_INTENSITY_MASK & ((MOTOR_COMMAND_INTENSITY_MASK * cmd.intensity) / 255);
     return direction_bit | intensity_byte;
 }

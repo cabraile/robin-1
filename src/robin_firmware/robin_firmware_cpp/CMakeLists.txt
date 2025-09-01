@@ -24,6 +24,16 @@ target_link_libraries(${PROJECT_NAME} INTERFACE Boost::boost)
 ament_export_targets(${PROJECT_NAME}Targets HAS_LIBRARY_TARGET)
 ament_export_dependencies(Boost)
 
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)  
+  find_package(robin_firmware_cpp REQUIRED)
+
+  ament_add_gtest(test_imu_reading
+    test/test_imu_reading.cpp
+  )
+  target_link_libraries(test_imu_reading robin_firmware_cpp::robin_firmware_cpp)
+endif()
+
 # Install headers
 install(
   DIRECTORY include/
