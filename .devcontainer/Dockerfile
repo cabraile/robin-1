@@ -7,14 +7,18 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV ROS_DISTRO=humble
 
 # Setup ROS2 Foxy
-RUN apt update -y && \
-        apt install ros-dev-tools -y 
-RUN rosdep init && rosdep update
+RUN apt update -y \
+        && apt install ros-dev-tools -y 
+RUN rosdep init \
+        && rosdep update
 
 # Extra dependencies
-RUN apt update && apt install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-tools gstreamer1.0-plugins-good \
-        gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-        gstreamer1.0-libav python3-pip -y
+RUN apt update \
+        && apt install \
+                libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-tools gstreamer1.0-plugins-good \
+                gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
+                gstreamer1.0-libav python3-pip -y
+
 RUN apt update && apt install -y ros-${ROS_DISTRO}-foxglove-bridge ros-${ROS_DISTRO}-robot-localization
 RUN pip3 install ros2-numpy open3d pycolmap ahrs filterpy
 
@@ -53,6 +57,14 @@ RUN groupadd --gid $USER_GID $USERNAME && \
 # Add user to dialout
 RUN groupadd -r dialout || true && \
     usermod -aG dialout ${USERNAME}
+
+# Install sudo
+USER root
+RUN apt update && apt install -y sudo
+
+# Give dev user passwordless sudo
+RUN echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
+    && chmod 440 /etc/sudoers.d/$USERNAME
 
 RUN chsh -s /bin/bash $USERNAME
 USER $USERNAME
