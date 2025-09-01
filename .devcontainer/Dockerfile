@@ -45,9 +45,8 @@ RUN pip install --upgrade pip && pip install \
     black \
     mypy \
     flake8 \
-    isort
-
-RUN pip install pre-commit && /home/dev/.local/bin/pre-commit install
+    isort \
+    pre-commit
 
 # Set up a non-root user
 ARG USER_UID=1000
@@ -76,5 +75,5 @@ RUN echo "source /etc/bash_completion" >> /home/$USERNAME/.bashrc \
         &&  echo "source /opt/ros/humble/setup.bash" >> /home/$USERNAME/.bashrc \
         &&  echo "export PATH=${PATH}:/home/dev/.local/bin" >> /home/$USERNAME/.bashrc \
         &&  echo "export PATH=$PATH:/usr/local/bin"
-
+       
 RUN chown $USERNAME:$USERNAME /home/$USERNAME/.bashrc
