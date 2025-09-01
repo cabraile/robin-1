@@ -11,6 +11,7 @@ find_package(ament_cmake REQUIRED)
 find_package(Boost REQUIRED)
 
 # Header-only library
+include_directories(include)
 add_library(${PROJECT_NAME} INTERFACE)
 
 target_include_directories(${PROJECT_NAME} INTERFACE
@@ -33,6 +34,11 @@ install(
 install(
   TARGETS ${PROJECT_NAME}
   EXPORT ${PROJECT_NAME}Targets
+)
+
+install(
+  DIRECTORY include/
+  DESTINATION include
 )
 
 ament_package()
