@@ -1,0 +1,175 @@
+#include <robin_firmware_cpp/interface.hpp>
+
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/opencv.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/image.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <std_msgs/msg/header.hpp>
+
+#include <atomic>
+#include <memory>
+#include <signal.h>
+
+#include <string_view>
+namespace
+{
+constexpr int QUEUE_SIZE        = 10;
+constexpr int SPIN_FREQUENCY_HZ = 30;
+
+constexpr std::string_view ROBIN_ROS2_NODE_NAME  = "robin_platform_interface_node";
+constexpr std::string_view ROBIN_CAMERA_FRAME_ID = "camera";
+constexpr std::string_view ROBIN_IMU_FRAME_ID    = "imu";
+
+constexpr std::string_view ROBIN_SENSOR_DATA_IMAGE_OUT_TOPIC = "/robin/sensors/image/undistorted/raw";
+constexpr std::string_view ROBIN_SENSOR_DATA_IMU_OUT_TOPIC   = "/robin/sensors/imu/unfiltered";
+
+} // namespace
+
+namespace robin_ros2
+{
+
+class CameraDriver
+{
+
+  public:
+    CameraDriver()
+    {
+        video_capture_ptr_ = std::make_unique<cv::VideoCapture>(0);
+    }
+
+    std::optional<cv::Mat> getFrame()
+    {
+        cv::Mat frame{};
+        *video_capture_ptr_ >> frame;
+        if (frame.empty())
+        {
+            return std::nullopt;
+        }
+        return frame;
+    }
+
+    ~CameraDriver()
+    {
+        video_capture_ptr_->release();
+    }
+
+  private:
+    std::unique_ptr<cv::VideoCapture> video_capture_ptr_;
+};
+
+class SensorDataPublisher
+{
+
+  public:
+    SensorDataPublisher(rclcpp::Node& node)
+    {
+        imu_pub_ptr_ = node.create_publisher<sensor_msgs::msg::Imu>(ROBIN_SENSOR_DATA_IMU_OUT_TOPIC.data(), QUEUE_SIZE);
+        cam_pub_ptr_ = node.create_publisher<sensor_msgs::msg::CompressedImage>(
+            ROBIN_SENSOR_DATA_IMAGE_OUT_TOPIC.data(), QUEUE_SIZE);
+    }
+
+    void publishCameraImage(const cv::Mat& cam_image, const rclcpp::Time& stamp)
+    {
+        auto img_msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", cam_image).toCompressedImageMsg();
+        img_msg->header.frame_id = ROBIN_CAMERA_FRAME_ID.data();
+        img_msg->header.stamp    = stamp;
+        cam_pub_ptr_->publish(*img_msg);
+    }
+
+    void publishImu(const robin_firmware::ImuReading& imu, const rclcpp::Time& stamp)
+    {
+        sensor_msgs::msg::Imu imu_msg{};
+        imu_msg.header.frame_id = ROBIN_IMU_FRAME_ID.data();
+        imu_msg.header.stamp    = stamp;
+
+        imu_msg.angular_velocity.x = imu.gyro_X_deg_per_sec;
+        imu_msg.angular_velocity.y = imu.gyro_Y_deg_per_sec;
+        imu_msg.angular_velocity.z = imu.gyro_Z_deg_per_sec;
+
+        imu_msg.linear_acceleration.x = imu.accel_X_gs;
+        imu_msg.linear_acceleration.y = imu.accel_Y_gs;
+        imu_msg.linear_acceleration.z = imu.accel_Z_gs;
+
+        imu_pub_ptr_->publish(imu_msg);
+    }
+
+  private:
+    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr             imu_pub_ptr_;
+    rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr cam_pub_ptr_;
+};
+
+class RobinExecutorRosNode : public rclcpp::Node
+{
+
+  public:
+    RobinExecutorRosNode() : Node(ROBIN_ROS2_NODE_NAME.data()), sensor_data_pub_(*this)
+    {
+        spin_timer_ = this->create_wall_timer(std::chrono::milliseconds(1000 / SPIN_FREQUENCY_HZ),
+                                              std::bind(&RobinExecutorRosNode::loop, this));
+    }
+
+    ~RobinExecutorRosNode()
+    {
+        firmware_interface_.sendMotorCommands({}, {});
+    }
+
+    RobinExecutorRosNode(const RobinExecutorRosNode&)            = delete;
+    RobinExecutorRosNode& operator=(const RobinExecutorRosNode&) = delete;
+    RobinExecutorRosNode(RobinExecutorRosNode&&)                 = delete;
+    RobinExecutorRosNode& operator=(RobinExecutorRosNode&&)      = delete;
+
+  private:
+    CameraDriver                 cam_driver_{};
+    robin_firmware::Interface    firmware_interface_{};
+    rclcpp::TimerBase::SharedPtr spin_timer_{};
+    SensorDataPublisher          sensor_data_pub_;
+
+    inline void loop()
+    {
+        const auto imu_reading_opt = firmware_interface_.readImu();
+        const auto imu_time        = this->get_clock()->now();
+        if (imu_reading_opt)
+        {
+            sensor_data_pub_.publishImu(*imu_reading_opt, imu_time);
+        }
+
+        const auto img_opt  = cam_driver_.getFrame();
+        const auto img_time = this->get_clock()->now();
+        if (img_opt)
+        {
+            sensor_data_pub_.publishCameraImage(*img_opt, img_time);
+        }
+    }
+};
+
+} // namespace robin_ros2
+
+std::atomic_bool g_shutdown_requested{false};
+
+void signal_handler(int signal)
+{
+    if (signal == SIGINT)
+    {
+        g_shutdown_requested = true;
+        rclcpp::shutdown();
+    }
+}
+
+int main(int argc, char* argv[])
+{
+    using robin_ros2::RobinExecutorRosNode;
+
+    // Register signal handler
+    signal(SIGINT, signal_handler);
+
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<RobinExecutorRosNode>();
+    while (rclcpp::ok() && !g_shutdown_requested)
+    {
+        rclcpp::spin_some(node);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    rclcpp::shutdown();
+    return 0;
+}
