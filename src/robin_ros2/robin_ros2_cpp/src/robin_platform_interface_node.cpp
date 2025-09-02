@@ -1,6 +1,8 @@
 #include <robin_firmware_cpp/interface.hpp>
+#include <robin_kinematic_model_cpp/kinematic_model.h>
 
 #include <cv_bridge/cv_bridge.h>
+#include <geometry_msgs/msg/twist.hpp>
 #include <opencv2/opencv.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
@@ -23,11 +25,19 @@ constexpr std::string_view ROBIN_IMU_FRAME_ID    = "imu";
 
 constexpr std::string_view ROBIN_SENSOR_DATA_IMAGE_OUT_TOPIC = "/robin/sensors/image/undistorted/raw";
 constexpr std::string_view ROBIN_SENSOR_DATA_IMU_OUT_TOPIC   = "/robin/sensors/imu/unfiltered";
+constexpr std::string_view ROBIN_CMD_TWIST_IN_TOPIC          = "/robin/controls/command_twist";
 
 } // namespace
 
 namespace robin_ros2
 {
+
+// TODO: to load from config
+robin_core::VehicleSettings loadVehicleSettings(rclcpp::Node& node)
+{
+    robin_core::VehicleSettings settings{};
+    return settings;
+}
 
 class CameraDriver
 {
@@ -103,8 +113,14 @@ class RobinExecutorRosNode : public rclcpp::Node
 {
 
   public:
-    RobinExecutorRosNode() : Node(ROBIN_ROS2_NODE_NAME.data()), sensor_data_pub_(*this)
+    RobinExecutorRosNode()
+        : Node(ROBIN_ROS2_NODE_NAME.data()), sensor_data_pub_(*this), vehicle_settings_(loadVehicleSettings(*this))
     {
+
+        using std::placeholders::_1;
+        twist_cmd_sub_ptr_ = this->create_subscription<geometry_msgs::msg::Twist>(
+            ROBIN_CMD_TWIST_IN_TOPIC.data(), QUEUE_SIZE,
+            std::bind(&RobinExecutorRosNode::twistCommandCallback, this, _1));
         spin_timer_ = this->create_wall_timer(std::chrono::milliseconds(1000 / SPIN_FREQUENCY_HZ),
                                               std::bind(&RobinExecutorRosNode::loop, this));
     }
@@ -120,10 +136,12 @@ class RobinExecutorRosNode : public rclcpp::Node
     RobinExecutorRosNode& operator=(RobinExecutorRosNode&&)      = delete;
 
   private:
-    CameraDriver                 cam_driver_{};
-    robin_firmware::Interface    firmware_interface_{};
-    rclcpp::TimerBase::SharedPtr spin_timer_{};
-    SensorDataPublisher          sensor_data_pub_;
+    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr twist_cmd_sub_ptr_;
+    CameraDriver                                               cam_driver_{};
+    robin_firmware::Interface                                  firmware_interface_{};
+    rclcpp::TimerBase::SharedPtr                               spin_timer_{};
+    SensorDataPublisher                                        sensor_data_pub_;
+    robin_core::VehicleSettings                                vehicle_settings_;
 
     inline void loop()
     {
@@ -140,6 +158,31 @@ class RobinExecutorRosNode : public rclcpp::Node
         {
             sensor_data_pub_.publishCameraImage(*img_opt, img_time);
         }
+    }
+
+    inline void twistCommandCallback(const geometry_msgs::msg::Twist::SharedPtr twist_cmd_in_ptr)
+    {
+        robin_core::Twist2d twist{};
+        twist.linear.x = twist_cmd_in_ptr->linear.x;
+        twist.linear.y = twist_cmd_in_ptr->linear.y; //< SHOULD BE ALWAYS ZERO!
+        twist.angular  = twist_cmd_in_ptr->angular.z;
+        twist.frame    = robin_core::Frame::VEHICLE_AXLE;
+
+        const auto                   cmd = robin_kinematic_model::commandFromVelocities(twist, vehicle_settings_);
+        robin_firmware::MotorCommand cmd_left{};
+        cmd_left.rotate_forward = (cmd.wheel_velocity_left > 0);
+        cmd_left.intensity      = 255 * (cmd.wheel_velocity_left / vehicle_settings_.max_actuator_velocity);
+        robin_firmware::MotorCommand cmd_right{};
+        cmd_right.rotate_forward = (cmd.wheel_velocity_right > 0);
+        cmd_right.intensity      = 255 * (cmd.wheel_velocity_right / vehicle_settings_.max_actuator_velocity);
+
+        // Command logging
+        RCLCPP_INFO(this->get_logger(), "Received twist command: %f, %f, %f", twist_cmd_in_ptr->linear.x,
+                    twist_cmd_in_ptr->linear.y, twist_cmd_in_ptr->angular.z);
+        RCLCPP_INFO(this->get_logger(), "Generated cmd: Left: %d, Right: %d", cmd_left.intensity, cmd_right.intensity);
+        firmware_interface_.sendMotorCommands(cmd_right,
+                                              cmd_left); // Inverted on purpose.
+        RCLCPP_INFO(this->get_logger(), "Sent command!");
     }
 };
 

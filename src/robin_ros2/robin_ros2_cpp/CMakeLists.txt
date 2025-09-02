@@ -6,18 +6,22 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(robin_firmware_cpp REQUIRED)
+find_package(robin_kinematic_model_cpp REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
 add_executable(robin_platform_interface_node src/robin_platform_interface_node.cpp)
 ament_target_dependencies(robin_platform_interface_node 
+  cv_bridge
+  geometry_msgs
+  OpenCV 
   rclcpp 
   robin_firmware_cpp 
-  OpenCV 
-  cv_bridge
+  robin_kinematic_model_cpp
   sensor_msgs
 )
 
