@@ -8,11 +8,10 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(robin_firmware_cpp REQUIRED)
-
-include_directories(include)
+find_package(robin_perception_cpp REQUIRED)
 
 add_executable(robin_executor_ros_node src/robin_executor_ros_node.cpp)
-ament_target_dependencies(robin_executor_ros_node  rclcpp robin_firmware_cpp)
+ament_target_dependencies(robin_executor_ros_node rclcpp robin_firmware_cpp robin_perception_cpp)
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)  

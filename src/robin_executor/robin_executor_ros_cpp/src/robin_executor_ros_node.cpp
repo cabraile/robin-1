@@ -1,5 +1,7 @@
-#include <rclcpp/rclcpp.hpp>
 #include <robin_firmware_cpp/interface.hpp>
+#include <robin_perception_cpp/perception_interface.h>
+
+#include <rclcpp/rclcpp.hpp>
 
 #include <string_view>
 namespace
@@ -19,9 +21,8 @@ class RobinExecutorRosNode : public rclcpp::Node
 {
 
   public:
-    RobinExecutorRosNode() : Node(ROBIN_ROS2_NODE_NAME.data())
+    RobinExecutorRosNode() : Node(ROBIN_ROS2_NODE_NAME.data()) //, perception_interface_()
     {
-        using std::placeholders::_1;
         spin_timer_ = this->create_wall_timer(std::chrono::milliseconds(1000 / SPIN_FREQUENCY_HZ),
                                               std::bind(&RobinExecutorRosNode::loop, this));
     }
@@ -37,11 +38,13 @@ class RobinExecutorRosNode : public rclcpp::Node
     RobinExecutorRosNode& operator=(RobinExecutorRosNode&&)      = delete;
 
   private:
-    robin_firmware::Interface    firmware_interface_{};
-    rclcpp::TimerBase::SharedPtr spin_timer_{};
+    robin_firmware::Interface             firmware_interface_{};
+    robin_perception::PerceptionInterface perception_interface_;
+    rclcpp::TimerBase::SharedPtr          spin_timer_{};
 
     void loop()
     {
+        // Input receiver
         const auto imu_reading_opt = firmware_interface_.readImu();
         if (!imu_reading_opt)
         {
@@ -54,6 +57,19 @@ class RobinExecutorRosNode : public rclcpp::Node
                     "%.2f] deg/s",
                     imu_reading.accel_X_gs, imu_reading.accel_Y_gs, imu_reading.accel_Z_gs,
                     imu_reading.gyro_X_deg_per_sec, imu_reading.gyro_Y_deg_per_sec, imu_reading.gyro_Z_deg_per_sec);
+
+        // Perception stack
+        const robin_perception::PerceptionInput sensor_data{std::make_shared<robin_firmware::ImuReading>(imu_reading)};
+
+        const auto perception_output = perception_interface_.processSensorData(sensor_data);
+        RCLCPP_INFO(this->get_logger(),
+                    "Filtered IMU Reading - Accel: [%.2f, %.2f, %.2f] g, Gyro: [%.2f, %.2f, "
+                    "%.2f] deg/s, orientation [qw, qx, qy, qz]: [%.2f, %.2f, %.2f, %.2f]",
+                    perception_output.imu.acceleration.x(), perception_output.imu.acceleration.y(),
+                    perception_output.imu.acceleration.z(), perception_output.imu.orientation_rate_rpy.x(),
+                    perception_output.imu.orientation_rate_rpy.y(), perception_output.imu.orientation_rate_rpy.z(),
+                    perception_output.imu.orientation.w(), perception_output.imu.orientation.x(),
+                    perception_output.imu.orientation.y(), perception_output.imu.orientation.z());
     }
 };
 

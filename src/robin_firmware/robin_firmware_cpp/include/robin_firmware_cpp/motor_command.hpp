@@ -20,7 +20,7 @@ struct MotorCommand
 ///   - `i` represents the intensity of the rotation
 /// @param[in] cmd The received command byte.
 /// @returns The decoded command.
-void decodeMotorCmdBytes(const char cmd, MotorCommand& motor_left, MotorCommand& motor_right)
+inline void decodeMotorCmdBytes(const char cmd, MotorCommand& motor_left, MotorCommand& motor_right)
 {
     const char non_scaled_intensity_right = (MOTOR_COMMAND_INTENSITY_MASK & cmd);
     motor_right.intensity                 = (255 * non_scaled_intensity_right) / MOTOR_COMMAND_INTENSITY_MASK;
@@ -40,14 +40,14 @@ void decodeMotorCmdBytes(const char cmd, MotorCommand& motor_left, MotorCommand&
 ///   - `i` represents the intensity of the rotation
 /// @param[in] cmd The motor command to be encoded.
 /// @returns The encoded command.
-char encodeMotorCmdToByte(const MotorCommand& cmd)
+inline char encodeMotorCmdToByte(const MotorCommand& cmd)
 {
     const char direction_bit  = (cmd.rotate_forward) ? MOTOR_COMMAND_DIRECTION_MASK : 0b00000000;
     const char intensity_byte = MOTOR_COMMAND_INTENSITY_MASK & ((MOTOR_COMMAND_INTENSITY_MASK * cmd.intensity) / 255);
     return direction_bit | intensity_byte;
 }
 
-char encodeMotorCmdToByte(const MotorCommand& cmd_left, const MotorCommand& cmd_right)
+inline char encodeMotorCmdToByte(const MotorCommand& cmd_left, const MotorCommand& cmd_right)
 {
     const char cmd_byte_left  = (0b00001111 & robin_firmware::encodeMotorCmdToByte(cmd_left)) << 4;
     const char cmd_byte_right = (0b00001111 & robin_firmware::encodeMotorCmdToByte(cmd_right));

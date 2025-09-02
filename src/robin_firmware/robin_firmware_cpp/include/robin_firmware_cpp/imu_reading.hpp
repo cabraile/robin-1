@@ -20,7 +20,7 @@ struct ImuReading
     float gyro_Z_deg_per_sec;
 };
 
-void toByteStream(const ImuReading& rec_imu, char* data_buffer_out)
+inline void toByteStream(const ImuReading& rec_imu, char* data_buffer_out)
 {
     float fields_array[NUM_IMU_READING_FIELDS] = {rec_imu.accel_X_gs,         rec_imu.accel_Y_gs,
                                                   rec_imu.accel_Z_gs,         rec_imu.gyro_X_deg_per_sec,
@@ -32,7 +32,7 @@ void toByteStream(const ImuReading& rec_imu, char* data_buffer_out)
     }
 }
 
-ImuReading fromByteStream(const char buffer[IMU_READING_BUFFER_SIZE_BYTES])
+inline ImuReading fromByteStream(const char buffer[IMU_READING_BUFFER_SIZE_BYTES])
 {
     ImuReading imu_reading{};
     memcpy(&imu_reading.accel_X_gs, buffer + 0 * SIZE_OF_FLOAT, SIZE_OF_FLOAT);

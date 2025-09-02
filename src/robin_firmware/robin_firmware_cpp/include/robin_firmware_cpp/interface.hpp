@@ -25,8 +25,8 @@ class Interface
             boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
     }
 
-    bool sendMotorCommands(const robin_firmware::MotorCommand& left_motor_cmd,
-                           const robin_firmware::MotorCommand& right_motor_cmd)
+    inline bool sendMotorCommands(const robin_firmware::MotorCommand& left_motor_cmd,
+                                  const robin_firmware::MotorCommand& right_motor_cmd)
     {
         std::lock_guard<std::mutex> lock(serial_mutex_);
         const char                  cmd_byte[2]{robin_firmware::CMD_ACTIVATE_MOTOR_MASK,
@@ -35,7 +35,7 @@ class Interface
         return true;
     }
 
-    std::optional<ImuReading> readImu(int max_attempts = 100)
+    inline std::optional<ImuReading> readImu(int max_attempts = 100)
     {
         std::lock_guard<std::mutex> lock(serial_mutex_);
         char                        byte;
