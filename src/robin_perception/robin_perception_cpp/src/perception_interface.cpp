@@ -3,12 +3,14 @@
 namespace robin_perception
 {
 
-PerceptionInterface::PerceptionInterface() : madgwick_filter_(0.1f, 30.0f){};
+PerceptionInterface::PerceptionInterface() : imu_filter_(){};
 
 PerceptionOutput PerceptionInterface::processSensorData(const PerceptionInput& sensor_data)
 {
-    madgwick_filter_.update(*sensor_data.imu);
-    return {madgwick_filter_.getFilteredImu()};
+    const auto filtered_imu = imu_filter_.filter(*sensor_data.imu);
+    // TODO: have the image processed as well
+    slam_system_.processFrame(*(sensor_data.image));
+    // TODO get optimized pose w.r.t. map
     return {};
 }
 

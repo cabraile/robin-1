@@ -2,11 +2,14 @@
 #define ROBIN_PERCEPTION_CPP_STRUCTURES_H
 
 #include <memory>
+#include <opencv2/opencv.hpp>
 #include <robin_core_cpp/core.h>
 #include <robin_firmware_cpp/imu_reading.hpp>
 
 namespace robin_perception
 {
+
+using Image = cv::Mat;
 
 struct FilteredImu
 {
@@ -18,12 +21,13 @@ struct FilteredImu
 struct PerceptionInput
 {
     std::shared_ptr<robin_firmware::ImuReading> imu;
+    std::shared_ptr<Image>                      image;
 };
 
 struct PerceptionOutput
 {
-    FilteredImu imu;
 };
+
 } // namespace robin_perception
 
 #endif

@@ -2,7 +2,8 @@
 #define ROBIN_PERCEPTION_CPP_PERCEPTION_INTERFACE_H
 
 #include <robin_firmware_cpp/imu_reading.hpp>
-#include <robin_perception_cpp/madgwick_filter.h>
+#include <robin_perception_cpp/imu_filter.h>
+#include <robin_perception_cpp/slam_system.h>
 #include <robin_perception_cpp/structures.h>
 
 namespace robin_perception
@@ -17,7 +18,8 @@ class PerceptionInterface
     PerceptionOutput processSensorData(const PerceptionInput& sensor_data);
 
   private:
-    MadgwickFilter madgwick_filter_;
+    ImuFilter  imu_filter_;
+    SlamSystem slam_system_;
 };
 
 } // namespace robin_perception

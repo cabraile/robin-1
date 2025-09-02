@@ -1,9 +1,12 @@
 #include <robin_firmware_cpp/interface.hpp>
 #include <robin_perception_cpp/perception_interface.h>
+#include <robin_perception_cpp/structures.h>
 
+#include <opencv2/opencv.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include <atomic>
+#include <memory>
 #include <signal.h>
 
 #include <string_view>
@@ -14,17 +17,43 @@ constexpr int              SPIN_FREQUENCY_HZ    = 30;
 constexpr std::string_view ROBIN_ROS2_NODE_NAME = "robin_executor_ros_node";
 } // namespace
 
-namespace robin
+namespace robin_executor_ros
 {
 
-namespace robin_ros2
+class CameraDriver
 {
+
+  public:
+    CameraDriver()
+    {
+        video_capture_ptr_ = std::make_unique<cv::VideoCapture>(0);
+    }
+
+    std::optional<robin_perception::Image> getFrame()
+    {
+        robin_perception::Image frame{};
+        *video_capture_ptr_ >> frame;
+        if (frame.empty())
+        {
+            return std::nullopt;
+        }
+        return frame;
+    }
+
+    ~CameraDriver()
+    {
+        video_capture_ptr_->release();
+    }
+
+  private:
+    std::unique_ptr<cv::VideoCapture> video_capture_ptr_;
+};
 
 class RobinExecutorRosNode : public rclcpp::Node
 {
 
   public:
-    RobinExecutorRosNode() : Node(ROBIN_ROS2_NODE_NAME.data()) //, perception_interface_()
+    RobinExecutorRosNode() : Node(ROBIN_ROS2_NODE_NAME.data())
     {
         spin_timer_ = this->create_wall_timer(std::chrono::milliseconds(1000 / SPIN_FREQUENCY_HZ),
                                               std::bind(&RobinExecutorRosNode::loop, this));
@@ -41,8 +70,9 @@ class RobinExecutorRosNode : public rclcpp::Node
     RobinExecutorRosNode& operator=(RobinExecutorRosNode&&)      = delete;
 
   private:
+    CameraDriver                          cam_driver_{};
     robin_firmware::Interface             firmware_interface_{};
-    robin_perception::PerceptionInterface perception_interface_;
+    robin_perception::PerceptionInterface perception_interface_{};
     rclcpp::TimerBase::SharedPtr          spin_timer_{};
 
     void loop()
@@ -54,32 +84,21 @@ class RobinExecutorRosNode : public rclcpp::Node
             RCLCPP_WARN(this->get_logger(), "No IMU reading available. Skipping iteration.");
             return;
         }
-        const auto imu_reading = *imu_reading_opt;
-        RCLCPP_INFO(this->get_logger(),
-                    "IMU Reading - Accel: [%.2f, %.2f, %.2f] g, Gyro: [%.2f, %.2f, "
-                    "%.2f] deg/s",
-                    imu_reading.accel_X_gs, imu_reading.accel_Y_gs, imu_reading.accel_Z_gs,
-                    imu_reading.gyro_X_deg_per_sec, imu_reading.gyro_Y_deg_per_sec, imu_reading.gyro_Z_deg_per_sec);
+        const auto img_opt = cam_driver_.getFrame();
+        if (!img_opt)
+        {
+            RCLCPP_DEBUG(this->get_logger(), "No camera frame received.");
+        }
 
         // Perception stack
-        const robin_perception::PerceptionInput sensor_data{std::make_shared<robin_firmware::ImuReading>(imu_reading)};
-
+        const robin_perception::PerceptionInput sensor_data{
+            std::make_shared<robin_firmware::ImuReading>(*imu_reading_opt),
+            std::make_shared<robin_perception::Image>(*img_opt)};
         const auto perception_output = perception_interface_.processSensorData(sensor_data);
-
-        const auto imu_rpy = perception_output.imu.orientation.toRotationMatrix().eulerAngles(0, 1, 2) * 180.0 / M_PI;
-
-        RCLCPP_INFO(this->get_logger(),
-                    "Filtered IMU Reading - Accel: [%.2f, %.2f, %.2f] g, Gyro: [%.2f, %.2f, "
-                    "%.2f] deg/s, orientation [r,p,y]: [%.2f, %.2f, %.2f] deg",
-                    perception_output.imu.acceleration.x(), perception_output.imu.acceleration.y(),
-                    perception_output.imu.acceleration.z(), perception_output.imu.orientation_rate_rpy.x(),
-                    perception_output.imu.orientation_rate_rpy.y(), perception_output.imu.orientation_rate_rpy.z(),
-                    imu_rpy[0], imu_rpy[1], imu_rpy[2]);
     }
 };
 
-} // namespace robin_ros2
-} // namespace robin
+} // namespace robin_executor_ros
 
 std::atomic_bool g_shutdown_requested{false};
 
@@ -94,7 +113,7 @@ void signal_handler(int signal)
 
 int main(int argc, char* argv[])
 {
-    using robin::robin_ros2::RobinExecutorRosNode;
+    using robin_executor_ros::RobinExecutorRosNode;
 
     // Register signal handler
     signal(SIGINT, signal_handler);
