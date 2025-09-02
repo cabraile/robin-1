@@ -9,7 +9,6 @@ TEST(RobinPerception, SmokeTestSlamSystem)
     SlamSystem slam;
     cv::Mat    dummy_image = cv::Mat::zeros(480, 640, CV_8UC1);
     slam.processFrame(dummy_image);
-    // If no crash, test passes
     SUCCEED();
 }
 

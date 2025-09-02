@@ -1,3 +1,4 @@
+#include <opencv2/aruco.hpp>
 #include <robin_perception_cpp/slam_system.h>
 
 namespace robin_perception
@@ -6,7 +7,7 @@ namespace robin_perception
 void SlamSystem::processFrame(const cv::Mat& img)
 {
     Frame curr{};
-    cv::undistort(img, curr.image, K, distCoeffs);
+    curr.image = img;
 
     if (isBlurry(curr.image))
         return;

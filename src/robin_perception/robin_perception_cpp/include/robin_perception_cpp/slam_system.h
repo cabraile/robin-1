@@ -1,7 +1,7 @@
 #ifndef ROBIN_PERCEPTION_CPP_SLAM_SYSTEM_H
 #define ROBIN_PERCEPTION_CPP_SLAM_SYSTEM_H
-#include <opencv2/aruco.hpp>
 #include <opencv2/opencv.hpp>
+#include <robin_perception_cpp/structures.h>
 
 namespace robin_perception
 {
@@ -19,6 +19,10 @@ struct Landmark
     cv::Point3f position;
     cv::Mat     descriptor;
     int         observations;
+};
+
+struct SlamSystemSettings
+{
 };
 
 class SlamSystem

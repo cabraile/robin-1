@@ -13,6 +13,7 @@ find_package(robin_core_cpp REQUIRED)
 find_package(robin_firmware_cpp REQUIRED)
 
 add_library(${PROJECT_NAME} 
+    src/image_processor.cpp
     src/imu_filter.cpp
     src/slam_system.cpp
     src/perception_interface.cpp

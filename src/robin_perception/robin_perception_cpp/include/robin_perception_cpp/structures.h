@@ -8,9 +8,6 @@
 
 namespace robin_perception
 {
-
-using Image = cv::Mat;
-
 struct FilteredImu
 {
     robin_core::Vector3    acceleration;
@@ -21,7 +18,7 @@ struct FilteredImu
 struct PerceptionInput
 {
     std::shared_ptr<robin_firmware::ImuReading> imu;
-    std::shared_ptr<Image>                      image;
+    std::shared_ptr<cv::Mat>                    image;
 };
 
 struct PerceptionOutput
