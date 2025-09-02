@@ -19,7 +19,7 @@ RUN apt update \
                 gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
                 gstreamer1.0-libav python3-pip libopencv-dev -y
 
-RUN apt update && apt install -y ros-${ROS_DISTRO}-foxglove-bridge ros-${ROS_DISTRO}-robot-localization
+RUN apt update && apt install -y ros-${ROS_DISTRO}-foxglove-bridge ros-${ROS_DISTRO}-robot-localization ros-${ROS_DISTRO}-cv-bridge
 RUN pip3 install ros2-numpy open3d pycolmap ahrs filterpy
 
 ###################
