@@ -17,7 +17,7 @@ RUN apt update \
         && apt install \
                 libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-tools gstreamer1.0-plugins-good \
                 gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-                gstreamer1.0-libav python3-pip libopencv-dev -y
+                gstreamer1.0-libav python3-pip libopencv-dev ros-${ROS_DISTRO}-ros2bag -y 
 
 RUN apt update && apt install -y ros-${ROS_DISTRO}-foxglove-bridge ros-${ROS_DISTRO}-robot-localization ros-${ROS_DISTRO}-cv-bridge
 RUN pip3 install ros2-numpy open3d ahrs filterpy
