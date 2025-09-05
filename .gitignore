@@ -1,3 +1,7 @@
+# Local files
+core
+external_data/
+
 # Colcon
 build/
 install/
