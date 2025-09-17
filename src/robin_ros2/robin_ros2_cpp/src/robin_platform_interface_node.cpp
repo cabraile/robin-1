@@ -167,7 +167,8 @@ class RobinExecutorRosNode : public rclcpp::Node
             RCLCPP_INFO(this->get_logger(), "Cam exists");
             sensor_data_pub_.publishCameraImage(*img_opt, img_time);
         }
-        else {
+        else
+        {
             RCLCPP_WARN(this->get_logger(), "Image capture failed.");
         }
     }
