@@ -27,6 +27,8 @@ constexpr std::string_view ROBIN_SENSOR_DATA_IMAGE_OUT_TOPIC = "/robin/sensors/i
 constexpr std::string_view ROBIN_SENSOR_DATA_IMU_OUT_TOPIC   = "/robin/sensors/imu/unfiltered";
 constexpr std::string_view ROBIN_CMD_TWIST_IN_TOPIC          = "/robin/controls/command_twist";
 
+constexpr std::string_view ROBIN_CAMERA_URL = "http://192.168.15.25:5123/video_feed";
+
 } // namespace
 
 namespace robin_ros2
@@ -45,7 +47,11 @@ class CameraDriver
   public:
     CameraDriver()
     {
-        video_capture_ptr_ = std::make_unique<cv::VideoCapture>(0);
+        video_capture_ptr_ = std::make_unique<cv::VideoCapture>(ROBIN_CAMERA_URL.data(), cv::CAP_FFMPEG);
+        if (!video_capture_ptr_->isOpened())
+        {
+            throw std::runtime_error("Failed to open camera at URL: " + std::string(ROBIN_CAMERA_URL));
+        }
     }
 
     std::optional<cv::Mat> getFrame()
@@ -145,18 +151,24 @@ class RobinExecutorRosNode : public rclcpp::Node
 
     inline void loop()
     {
-        const auto imu_reading_opt = firmware_interface_.readImu();
-        const auto imu_time        = this->get_clock()->now();
-        if (imu_reading_opt)
-        {
-            sensor_data_pub_.publishImu(*imu_reading_opt, imu_time);
-        }
+        // const auto imu_reading_opt = firmware_interface_.readImu();
+        // const auto imu_time        = this->get_clock()->now();
+        // if (imu_reading_opt)
+        // {
+        //     RCLCPP_INFO(this->get_logger(), "Imu exists");
+        //     std::cerr << "Imu exists\n";
+        //     sensor_data_pub_.publishImu(*imu_reading_opt, imu_time);
+        // }
 
         const auto img_opt  = cam_driver_.getFrame();
         const auto img_time = this->get_clock()->now();
         if (img_opt)
         {
+            RCLCPP_INFO(this->get_logger(), "Cam exists");
             sensor_data_pub_.publishCameraImage(*img_opt, img_time);
+        }
+        else {
+            RCLCPP_WARN(this->get_logger(), "Image capture failed.");
         }
     }
 

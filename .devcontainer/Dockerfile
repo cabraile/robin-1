@@ -59,6 +59,9 @@ RUN groupadd --gid $USER_GID $USERNAME && \
 RUN groupadd -r dialout || true && \
     usermod -aG dialout ${USERNAME}
 
+# Add user to video
+RUN usermod -aG video ${USERNAME}
+
 # Install sudo
 USER root
 RUN apt update && apt install -y sudo
@@ -73,7 +76,7 @@ WORKDIR /home/$USERNAME/workspace
 
 RUN echo "source /etc/bash_completion" >> /home/$USERNAME/.bashrc \
         &&  echo "source /opt/ros/humble/setup.bash" >> /home/$USERNAME/.bashrc \
-        &&  echo "export PATH=${PATH}:/home/dev/.local/bin" >> /home/$USERNAME/.bashrc \
+        &&  echo "export PATH=${PATH}:/home/${USERNAME}/.local/bin" >> /home/$USERNAME/.bashrc \
         &&  echo "export PATH=$PATH:/usr/local/bin"
        
 RUN chown $USERNAME:$USERNAME /home/$USERNAME/.bashrc

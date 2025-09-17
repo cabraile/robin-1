@@ -49,6 +49,7 @@
         "WAYLAND_DISPLAY",
         "--device=/dev/ttyUSB0",
         "--device=/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0",
+        "--device=/dev/vchiq",
         "-v",
         "/dev:/dev",
         "--privileged",
