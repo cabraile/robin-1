@@ -7,7 +7,18 @@
     <style>
         body { text-align: center; font-family: sans-serif; background: #f5f5f5; }
         button { font-size: 24px; padding: 10px 20px; margin: 5px; }
-        #imuData { font-size: 18px; margin: 10px; }
+        #logConsole { 
+            white-space: pre-wrap; 
+            background: #000; 
+            color: #0f0; 
+            padding: 10px; 
+            height: 300px; 
+            overflow-y: scroll; 
+            text-align: left; 
+            margin: 10px; 
+            font-size: 16px; 
+            border-radius: 5px; 
+        }
     </style>
 </head>
 <body>
@@ -32,6 +43,11 @@
         <div id="gitInfo">
             <h1>Git Information</h1>
             <p>Current Git Hash: <span id="gitHash">unknown</span></p>
+        </div>
+        <div id="logs">
+            <h1>System Logs</h1>
+            <div id="logConsole">
+            </div>
         </div>
     </div>
     <script>
@@ -73,7 +89,7 @@
             }).then(response => response.json())
               .then(data => {
                   if (data.success) {
-                      alert('Update successful!');
+                      alert('Update successful! Don\'t forget to reboot!');
                       document.getElementById('gitHash').innerText = data.git_hash;
                   } else {
                       alert('Update failed!');
@@ -93,7 +109,20 @@
                 }
             });
         }
+        function fetchLogs() {
+            fetch('/logs')
+                .then(response => response.json())
+                .then(data => {
+                    const logElement = document.getElementById('logConsole');
+                    if (data.success) {
+                        logElement.innerText = data.logs;
+                    } else {
+                        logElement.innerText = `Error fetching logs: ${data.error}`;
+                    }
+                });
+        }
         setInterval(fetchCameraSnapshot, 1000);
+        setInterval(fetchLogs, 500);
         fetchGitHash();
     </script>
 </body>

@@ -26,6 +26,7 @@ from pathlib import Path
 from flask import Flask, Response, jsonify, request, make_response
 from robin_py.platform.platform_interface import PlatformInterface
 import subprocess
+import logging
 
 # Load camera settings
 WORKSPACE_DIR = Path(__file__).parent.parent
@@ -35,6 +36,14 @@ DASHBOARD_HTML_PATH = (WORKSPACE_DIR / "html") / "dashboard.html"
 # Flask app
 app = Flask(__name__)
 platform = PlatformInterface(settings_path=SETTINGS_PATH)
+
+# Disable Flask's default logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.WARNING)
+
+# Configure your own logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 @app.route("/cmd", methods=["POST"])
 def cmd():
@@ -92,6 +101,20 @@ def build():
         result = subprocess.run(["/bin/bash", str(WORKSPACE_DIR / "scripts/run_robin_deploy.sh")], capture_output=True, text=True)
         if result.returncode == 0:
             return jsonify({"success": True, "output": result.stdout})
+        else:
+            return jsonify({"success": False, "error": result.stderr}), 500
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/logs", methods=["GET"])
+def logs():
+    try:
+        result = subprocess.run(
+            ["journalctl", "-u", "robin", "--since", "20 minutes ago", "--no-pager"],
+            capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            return jsonify({"success": True, "logs": result.stdout})
         else:
             return jsonify({"success": False, "error": result.stderr}), 500
     except Exception as e:
