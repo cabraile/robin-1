@@ -25,6 +25,7 @@ Finally, this script will run everytime the Raspberry Pi boots up.
 
 import logging
 import subprocess
+import datetime
 from pathlib import Path
 
 import cv2
@@ -36,6 +37,9 @@ import io
 # Load camera settings
 WORKSPACE_DIR = Path(__file__).parent.parent
 SETTINGS_PATH = WORKSPACE_DIR / "settings.yaml"
+LOGS_DIR = WORKSPACE_DIR / "robin_logs"
+LOGS_DIR.mkdir(exist_ok=True)
+LOGGER_OUTPUT_PATH = WORKSPACE_DIR / f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}_platform-interface.log"
 DASHBOARD_HTML_PATH = (WORKSPACE_DIR / "html") / "dashboard.html"
 
 # Flask app
@@ -47,10 +51,19 @@ log.setLevel(logging.WARNING)
 
 # Configure your own logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(),  # Ensure logs are sent to the console
+        logging.FileHandler("platform_interface.log")  # Optional: Log to a file
+    ]
 )
 logger = logging.getLogger(__name__)
 platform = PlatformInterface(settings_path=SETTINGS_PATH, logger=logger)
+
+# Ensure Flask uses the same logger
+app.logger.handlers = logger.handlers
+app.logger.setLevel(logger.level)
 
 # Initialize OpenCV video capture
 video_capture = cv2.VideoCapture(0)

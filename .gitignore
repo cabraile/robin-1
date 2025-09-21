@@ -1,6 +1,7 @@
 # Local files
 core
 external_data/
+robin_logs/
 
 # Colcon
 build/
