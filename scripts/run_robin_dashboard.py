@@ -12,7 +12,6 @@ It will convert the received data from Flask to ROS2 (IMU and Image).
 
 The original serial interface is implemented in C++ under
 `src/robin_firmware/robin_firmware_cpp/include/robin_firmware_cpp/interface.hpp`.
-
 The twist callback command conversion is originally implemented in C++ under
 `src/robin_ros2/robin_ros2_cpp/src/robin_platform_interface_node.cpp` which
 goes through the same interface under `robin_firmware_cpp`.
