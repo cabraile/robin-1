@@ -10,7 +10,6 @@ pinout:
 camera:
   width: 640
   height: 480
-  framerate: 30
+  framerate: 10
   hflip: true
   vflip: true
-  stream_port: 5123
