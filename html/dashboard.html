@@ -19,6 +19,13 @@
             font-size: 16px; 
             border-radius: 5px; 
         }
+        .slider-container {
+            margin: 20px;
+        }
+        .slider-label {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -34,6 +41,11 @@
             <button onclick="sendCommand('stop')">⏹</button>
             <button onclick="sendCommand('right')">→</button><br/>
             <button onclick="sendCommand('backward')">↓</button><br/>
+        </div>
+        <div id="velocityControl" class="slider-container">
+            <h1>Velocity Control</h1>
+            <label for="velocitySlider" class="slider-label">Max Velocity: <span id="velocityValue">1.0</span></label>
+            <input type="range" id="velocitySlider" min="0.1" max="2.0" step="0.1" value="1.0" oninput="updateVelocity(this.value)">
         </div>
         <div id="software">
             <h1>Software Versioning</h1>
@@ -61,12 +73,14 @@
         </div>
     </div>
     <script>
+        let maxVelocity = 1.0;
+
         function sendCommand(cmd) {
             let left = 0.0, right = 0.0;
-            if (cmd === "forward") { left = 1.0; right = 1.0; }
-            else if (cmd === "backward") { left = -1.0; right = -1.0; }
-            else if (cmd === "left") { left = -1.0; right = 1.0; }
-            else if (cmd === "right") { left = 1.0; right = -1.0; }
+            if (cmd === "forward") { left = maxVelocity; right = maxVelocity; }
+            else if (cmd === "backward") { left = -maxVelocity; right = -maxVelocity; }
+            else if (cmd === "left") { left = -maxVelocity; right = maxVelocity; }
+            else if (cmd === "right") { left = maxVelocity; right = -maxVelocity; }
             else if (cmd === "stop") { left = 0.0; right = 0.0; }
             fetch('/cmd', {
                 method: 'POST',
@@ -74,6 +88,12 @@
                 body: JSON.stringify({left: left, right: right})
             });
         }
+
+        function updateVelocity(value) {
+            maxVelocity = parseFloat(value);
+            document.getElementById('velocityValue').innerText = value;
+        }
+
         function fetchCameraSnapshot() {
             const element = document.getElementById('cameraImage');
             element.hidden = false;
@@ -85,6 +105,7 @@
                     }
                 });
         }
+
         function fetchGitHash() {
             fetch('/git-hash')
                 .then(response => response.json())
@@ -92,6 +113,7 @@
                     document.getElementById('gitHash').innerText = data.git_hash;
                 });
         }
+
         function sendUpdateCommand() {
             fetch('/update', {
                 method: 'POST',
@@ -119,6 +141,7 @@
                 }
             });
         }
+
         function fetchLogs() {
             fetch('/logs')
                 .then(response => response.json())
@@ -131,6 +154,7 @@
                     }
                 });
         }
+
         function updateLoggerLevel() {
             const level = document.getElementById('loggerLevelDropdown').value;
             fetch('/logger-level', {
@@ -146,6 +170,7 @@
                   }
               });
         }
+
         setInterval(fetchCameraSnapshot, 1000);
         setInterval(fetchLogs, 500);
         fetchGitHash();
