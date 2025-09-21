@@ -4,13 +4,11 @@ pinout:
   MOTOR_RIGHT_PIN_1: 13
   MOTOR_RIGHT_PIN_2: 19
   ENABLE_MOTOR_SHIELD_PIN: 8
-  IMU_SDA_PIN: 2
-  IMU_SCL_PIN: 3
 
 camera:
   width: 640
   height: 480
-  framerate: 1
+  framerate: 5
   hflip: true
   vflip: true
 
