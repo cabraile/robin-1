@@ -138,7 +138,7 @@ def update():
             text=True,
         )
         logger.info(
-            f"Fetched latest changes from origin/main. Output: {result_fetch.stdout}"
+            f"Fetched latest changes from origin/main. Stdout: '{result_fetch.stdout}'"
         )
         result = subprocess.run(
             ["git", "pull", "origin", "main"],
