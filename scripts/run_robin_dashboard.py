@@ -114,6 +114,12 @@ def get_git_hash():
 @app.route("/update", methods=["POST"])
 def update():
     try:
+        subprocess.run(
+            ["git", "fetch", "origin", "main"],
+            cwd=WORKSPACE_DIR,
+            capture_output=True,
+            text=True,
+        )
         result = subprocess.run(
             ["git", "pull", "origin", "main"],
             cwd=WORKSPACE_DIR,
