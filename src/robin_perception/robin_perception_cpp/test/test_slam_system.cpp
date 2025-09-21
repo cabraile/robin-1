@@ -6,8 +6,8 @@ using namespace robin_perception;
 
 TEST(RobinPerception, SmokeTestSlamSystem)
 {
-    SlamSystem slam;
-    cv::Mat    dummy_image = cv::Mat::zeros(480, 640, CV_8UC1);
+    SlamSystem slam        = 0;
+    cv::Mat    dummy_image = 0 = cv::Mat::zeros(480, 640, CV_8UC1);
     slam.processFrame(dummy_image);
     SUCCEED();
 }

@@ -7,10 +7,10 @@ This script has the following roles
 * Sending the IMU and camera data through flask
 * Displaying the existing info on the browser
 
-The client will be a Flask/ROS2 interface node. 
+The client will be a Flask/ROS2 interface node.
 It will convert the received data from Flask to ROS2 (IMU and Image).
 
-The original serial interface is implemented in C++ under 
+The original serial interface is implemented in C++ under
 `src/robin_firmware/robin_firmware_cpp/include/robin_firmware_cpp/interface.hpp`.
 
 The twist callback command conversion is originally implemented in C++ under
@@ -22,12 +22,15 @@ in `settings.yaml`.
 
 Finally, this script will run everytime the Raspberry Pi boots up.
 """
-from pathlib import Path
-from flask import Flask, Response, jsonify, request, make_response
-from robin_py.platform.platform_interface import PlatformInterface
-import subprocess
+
 import logging
+import subprocess
+from pathlib import Path
+
 import cv2
+from flask import Flask, Response, jsonify, make_response, request
+
+from robin_py.platform.platform_interface import PlatformInterface
 
 # Load camera settings
 WORKSPACE_DIR = Path(__file__).parent.parent
@@ -38,28 +41,34 @@ DASHBOARD_HTML_PATH = (WORKSPACE_DIR / "html") / "dashboard.html"
 app = Flask(__name__)
 
 # Disable Flask's default logging
-log = logging.getLogger('werkzeug')
+log = logging.getLogger("werkzeug")
 log.setLevel(logging.WARNING)
 
 # Configure your own logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 platform = PlatformInterface(settings_path=SETTINGS_PATH, logger=logger)
 
 # Initialize OpenCV video capture
 video_capture = cv2.VideoCapture(0)
 
+
 def generate_video_feed():
     while True:
         frame = platform.get_camera_snapshot()
         if frame is None:
             continue
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        yield (b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n")
+
 
 @app.route("/video_feed")
 def video_feed():
-    return Response(generate_video_feed(), mimetype="multipart/x-mixed-replace; boundary=frame")
+    return Response(
+        generate_video_feed(), mimetype="multipart/x-mixed-replace; boundary=frame"
+    )
+
 
 @app.route("/cmd", methods=["POST"])
 def cmd():
@@ -85,9 +94,15 @@ def index():
     with open(DASHBOARD_HTML_PATH) as f:
         return f.read()
 
+
 def get_git_hash():
     try:
-        result = subprocess.run(["git", "rev-parse", "HEAD"], cwd=WORKSPACE_DIR, capture_output=True, text=True)
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=WORKSPACE_DIR,
+            capture_output=True,
+            text=True,
+        )
         if result.returncode == 0:
             return result.stdout.strip()
         else:
@@ -95,26 +110,40 @@ def get_git_hash():
     except Exception:
         return "Unknown"
 
+
 @app.route("/update", methods=["POST"])
 def update():
     try:
-        result = subprocess.run(["git", "pull", "origin", "main"], cwd=WORKSPACE_DIR, capture_output=True, text=True)
+        result = subprocess.run(
+            ["git", "pull", "origin", "main"],
+            cwd=WORKSPACE_DIR,
+            capture_output=True,
+            text=True,
+        )
         if result.returncode == 0:
             new_hash = get_git_hash()
-            return jsonify({"success": True, "output": result.stdout, "git_hash": new_hash})
+            return jsonify(
+                {"success": True, "output": result.stdout, "git_hash": new_hash}
+            )
         else:
             return jsonify({"success": False, "error": result.stderr}), 500
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+
 @app.route("/git-hash", methods=["GET"])
 def git_hash():
     return jsonify({"git_hash": get_git_hash()})
 
+
 @app.route("/build", methods=["POST"])
 def build():
     try:
-        result = subprocess.run(["/bin/bash", str(WORKSPACE_DIR / "scripts/run_robin_deploy.sh")], capture_output=True, text=True)
+        result = subprocess.run(
+            ["/bin/bash", str(WORKSPACE_DIR / "scripts/run_robin_deploy.sh")],
+            capture_output=True,
+            text=True,
+        )
         if result.returncode == 0:
             return jsonify({"success": True, "output": result.stdout})
         else:
@@ -122,12 +151,14 @@ def build():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+
 @app.route("/logs", methods=["GET"])
 def logs():
     try:
         result = subprocess.run(
             ["journalctl", "-u", "robin", "--since", "20 minutes ago", "--no-pager"],
-            capture_output=True, text=True
+            capture_output=True,
+            text=True,
         )
         if result.returncode == 0:
             return jsonify({"success": True, "logs": result.stdout})
@@ -135,6 +166,7 @@ def logs():
             return jsonify({"success": False, "error": result.stderr}), 500
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
 
 @app.route("/logger-level", methods=["POST"])
 def set_logger_level():
@@ -144,7 +176,11 @@ def set_logger_level():
         logger.setLevel(level)
         return jsonify({"success": True, "message": f"Logger level set to {level}"})
     except ValueError:
-        return jsonify({"success": False, "error": f"Invalid logger level: {level}"}), 400
+        return (
+            jsonify({"success": False, "error": f"Invalid logger level: {level}"}),
+            400,
+        )
+
 
 if __name__ == "__main__":
     try:

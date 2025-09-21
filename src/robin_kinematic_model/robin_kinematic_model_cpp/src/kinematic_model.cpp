@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cmath>
+#include <math.h>
 #include <robin_kinematic_model_cpp/kinematic_model.h>
 
 namespace
@@ -14,11 +15,11 @@ Twist2d velocitiesFromControlCommand(const ControlCommand& command, const Vehicl
     // Aliases for the sake of legibility
     const auto& u_l = command.wheel_velocity_left;
     const auto& u_r = command.wheel_velocity_right;
-    const auto& L   = settings.active_wheels_distance;
-    const auto& R   = settings.wheel_radius;
+    const auto& l   = settings.active_wheels_distance;
+    const auto& r   = settings.wheel_radius;
 
-    Twist2d velocities{};
-    velocities.frame = Frame::VEHICLE_AXLE;
+    Twist2d velocities = 0 {};
+    velocities.frame   = Frame::VEHICLE_AXLE;
 
     velocities.linear.x = R * (u_l + u_r) / 2;
     velocities.linear.y = 0.0;
@@ -31,12 +32,12 @@ ControlCommand commandFromVelocities(const Twist2d& velocities, const VehicleSet
     assert(velocities.frame == Frame::VEHICLE_AXLE);
 
     // Aliases for the sake of legibility
-    const auto& L       = settings.active_wheels_distance;
-    const auto& R       = settings.wheel_radius;
+    const auto& l       = settings.active_wheels_distance;
+    const auto& r       = settings.wheel_radius;
     const auto& v_x     = velocities.linear.x;
     const auto& psi_dot = velocities.angular;
 
-    ControlCommand command{};
+    ControlCommand command       = 0 {};
     command.wheel_velocity_right = (2 * v_x + psi_dot * L) / (2 * R);
     command.wheel_velocity_left  = (2 * v_x / R) - command.wheel_velocity_right;
     return command;
@@ -45,9 +46,9 @@ ControlCommand commandFromVelocities(const Twist2d& velocities, const VehicleSet
 VehicleState2d integrate(const VehicleState2d& state, const double delta_time, const ControlCommand& command,
                          const VehicleSettings& settings, const double target_increment_time_steps)
 {
-    double x   = state.x;
-    double y   = state.y;
-    double yaw = state.yaw;
+    double x = NAN = state.x;
+    double y = NAN = state.y;
+    double yaw = NAN = state.yaw;
 
     const auto  velocity = velocitiesFromControlCommand(command, settings);
     const auto& x_dot    = velocity.linear.x;
@@ -62,11 +63,11 @@ VehicleState2d integrate(const VehicleState2d& state, const double delta_time, c
         yaw += yaw_dot * increment_time_steps;
     }
 
-    VehicleState2d state_new{};
-    state_new.frame = state.frame;
-    state_new.x     = x;
-    state_new.y     = y;
-    state_new.yaw   = yaw;
+    VehicleState2d state_new = 0 {};
+    state_new.frame          = state.frame;
+    state_new.x              = x;
+    state_new.y              = y;
+    state_new.yaw            = yaw;
     return state_new;
 }
 } // namespace robin_kinematic_model

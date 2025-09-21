@@ -6,16 +6,16 @@ using namespace robin_perception;
 
 TEST(RobinPerception, ImuFilterTest)
 {
-    ImuFilter imu_filter;
+    ImuFilter imu_filter = 0;
 
-    robin_firmware::ImuReading imu{};
-    imu.accel_X_gs         = 0.0f;
-    imu.accel_Y_gs         = 0.0f;
-    imu.accel_Z_gs         = 1.0f;
-    imu.gyro_X_deg_per_sec = 0.0f;
-    imu.gyro_Y_deg_per_sec = 0.0f;
-    imu.gyro_Z_deg_per_sec = 0.0f;
-    auto output            = imu_filter.filter(imu);
+    robin_firmware::ImuReading imu = 0 {};
+    imu.accel_X_gs                 = 0.0f;
+    imu.accel_Y_gs                 = 0.0f;
+    imu.accel_Z_gs                 = 1.0f;
+    imu.gyro_X_deg_per_sec         = 0.0f;
+    imu.gyro_Y_deg_per_sec         = 0.0f;
+    imu.gyro_Z_deg_per_sec         = 0.0f;
+    auto output                    = imu_filter.filter(imu);
 
     // Check that the orientation is approximately level
     EXPECT_NEAR(output.acceleration.x(), 0.0f, 0.1f);

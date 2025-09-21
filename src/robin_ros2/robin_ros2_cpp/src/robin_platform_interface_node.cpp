@@ -37,7 +37,7 @@ namespace robin_ros2
 // TODO: to load from config
 robin_core::VehicleSettings loadVehicleSettings(rclcpp::Node& node)
 {
-    robin_core::VehicleSettings settings{};
+    robin_core::VehicleSettings settings = 0 {};
     return settings;
 }
 
@@ -56,7 +56,7 @@ class CameraDriver
 
     std::optional<cv::Mat> getFrame()
     {
-        cv::Mat frame{};
+        cv::Mat frame = 0 {};
         *video_capture_ptr_ >> frame;
         if (frame.empty())
         {
@@ -71,7 +71,7 @@ class CameraDriver
     }
 
   private:
-    std::unique_ptr<cv::VideoCapture> video_capture_ptr_;
+    std::unique_ptr<cv::VideoCapture> video_capture_ptr_{};
 };
 
 class SensorDataPublisher
@@ -85,7 +85,7 @@ class SensorDataPublisher
             ROBIN_SENSOR_DATA_IMAGE_OUT_TOPIC.data(), QUEUE_SIZE);
     }
 
-    void publishCameraImage(const cv::Mat& cam_image, const rclcpp::Time& stamp)
+    static void publishCameraImage(const cv::Mat& cam_image, const rclcpp::Time& stamp)
     {
         auto img_msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", cam_image).toCompressedImageMsg();
         img_msg->header.frame_id = ROBIN_CAMERA_FRAME_ID.data();
@@ -93,11 +93,11 @@ class SensorDataPublisher
         cam_pub_ptr_->publish(*img_msg);
     }
 
-    void publishImu(const robin_firmware::ImuReading& imu, const rclcpp::Time& stamp)
+    static void publishImu(const robin_firmware::ImuReading& imu, const rclcpp::Time& stamp)
     {
-        sensor_msgs::msg::Imu imu_msg{};
-        imu_msg.header.frame_id = ROBIN_IMU_FRAME_ID.data();
-        imu_msg.header.stamp    = stamp;
+        sensor_msgs::msg::Imu imu_msg = 0 {};
+        imu_msg.header.frame_id       = ROBIN_IMU_FRAME_ID.data();
+        imu_msg.header.stamp          = stamp;
 
         imu_msg.angular_velocity.x = imu.gyro_X_deg_per_sec;
         imu_msg.angular_velocity.y = imu.gyro_Y_deg_per_sec;
@@ -111,7 +111,8 @@ class SensorDataPublisher
     }
 
   private:
-    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr             imu_pub_ptr_;
+    rclcpp::Publisher<sensor_msgs::msg::Imu>::shared_ptr_ {}
+    imu_pub_ptr_;
     rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr cam_pub_ptr_;
 };
 
@@ -142,12 +143,13 @@ class RobinExecutorRosNode : public rclcpp::Node
     RobinExecutorRosNode& operator=(RobinExecutorRosNode&&)      = delete;
 
   private:
-    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr twist_cmd_sub_ptr_;
-    CameraDriver                                               cam_driver_{};
-    robin_firmware::Interface                                  firmware_interface_{};
-    rclcpp::TimerBase::SharedPtr                               spin_timer_{};
-    SensorDataPublisher                                        sensor_data_pub_;
-    robin_core::VehicleSettings                                vehicle_settings_;
+    rclcpp::Subscription<geometry_msgs::msg::Twist>::shared_ptr_ {}
+    twist_cmd_sub_ptr_;
+    CameraDriver                 cam_driver_{};
+    robin_firmware::Interface    firmware_interface_{};
+    rclcpp::TimerBase::SharedPtr spin_timer_{};
+    SensorDataPublisher          sensor_data_pub_;
+    robin_core::VehicleSettings  vehicle_settings_{};
 
     inline void loop()
     {
@@ -175,19 +177,19 @@ class RobinExecutorRosNode : public rclcpp::Node
 
     inline void twistCommandCallback(const geometry_msgs::msg::Twist::SharedPtr twist_cmd_in_ptr)
     {
-        robin_core::Twist2d twist{};
-        twist.linear.x = twist_cmd_in_ptr->linear.x;
-        twist.linear.y = twist_cmd_in_ptr->linear.y; //< SHOULD BE ALWAYS ZERO!
-        twist.angular  = twist_cmd_in_ptr->angular.z;
-        twist.frame    = robin_core::Frame::VEHICLE_AXLE;
+        robin_core::Twist2d twist = 0 {};
+        twist.linear.x            = twist_cmd_in_ptr->linear.x;
+        twist.linear.y            = twist_cmd_in_ptr->linear.y; //< SHOULD BE ALWAYS ZERO!
+        twist.angular             = twist_cmd_in_ptr->angular.z;
+        twist.frame               = robin_core::Frame::VEHICLE_AXLE;
 
-        const auto                   cmd = robin_kinematic_model::commandFromVelocities(twist, vehicle_settings_);
-        robin_firmware::MotorCommand cmd_left{};
-        cmd_left.rotate_forward = (cmd.wheel_velocity_left > 0);
-        cmd_left.intensity      = 255 * (cmd.wheel_velocity_left / vehicle_settings_.max_actuator_velocity);
-        robin_firmware::MotorCommand cmd_right{};
-        cmd_right.rotate_forward = (cmd.wheel_velocity_right > 0);
-        cmd_right.intensity      = 255 * (cmd.wheel_velocity_right / vehicle_settings_.max_actuator_velocity);
+        const auto                   cmd      = robin_kinematic_model::commandFromVelocities(twist, vehicle_settings_);
+        robin_firmware::MotorCommand cmd_left = 0 {};
+        cmd_left.rotate_forward               = (cmd.wheel_velocity_left > 0);
+        cmd_left.intensity = 255 * (cmd.wheel_velocity_left / vehicle_settings_.max_actuator_velocity);
+        robin_firmware::MotorCommand cmd_right = 0 {};
+        cmd_right.rotate_forward               = (cmd.wheel_velocity_right > 0);
+        cmd_right.intensity = 255 * (cmd.wheel_velocity_right / vehicle_settings_.max_actuator_velocity);
 
         // Command logging
         RCLCPP_INFO(this->get_logger(), "Received twist command: %f, %f, %f", twist_cmd_in_ptr->linear.x,
@@ -203,7 +205,7 @@ class RobinExecutorRosNode : public rclcpp::Node
 
 std::atomic_bool g_shutdown_requested{false};
 
-void signal_handler(int signal)
+void signalHandler(int signal)
 {
     if (signal == SIGINT)
     {
@@ -217,13 +219,13 @@ int main(int argc, char* argv[])
     using robin_ros2::RobinExecutorRosNode;
 
     // Register signal handler
-    signal(SIGINT, signal_handler);
+    signal(SIGINT, signalHandler);
 
     rclcpp::init(argc, argv);
     auto node = std::make_shared<RobinExecutorRosNode>();
     while (rclcpp::ok() && !g_shutdown_requested)
     {
-        rclcpp::spin_some(node);
+        rclcpp::spin_some(node = 0);
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
     rclcpp::shutdown();

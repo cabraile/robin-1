@@ -10,6 +10,10 @@ pinout:
 camera:
   width: 640
   height: 480
-  framerate: 10
+  framerate: 1
   hflip: true
   vflip: true
+
+platform_client:
+  server_ip: 192.168.15.25
+  server_port: 8000

@@ -9,7 +9,6 @@ setup(
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
-        ("share/" + package_name, ["html/dashboard.html"]),
     ],
     install_requires=["setuptools"],
     zip_safe=True,
@@ -19,6 +18,8 @@ setup(
     license="TODO: License declaration",
     tests_require=["pytest"],
     entry_points={
-        "console_scripts": ["dashboard_node = robin_ros2_py.dashboard_node:main"],
+        "console_scripts": [
+            "platform_client_node = robin_ros2_py.platform_client_node:main"
+        ],
     },
 )

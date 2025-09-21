@@ -9,12 +9,12 @@ namespace robin_kinematic_model
 {
 TEST(TestVelocities, MovingForward)
 {
-    VehicleSettings settings{};
+    VehicleSettings settings        = 0 {};
     settings.active_wheels_distance = 0.4;
     settings.wheel_radius           = 0.5;
     settings.wheelbase_distance     = 0.1;
 
-    ControlCommand command{};
+    ControlCommand command       = 0 {};
     command.wheel_velocity_left  = 1.0;
     command.wheel_velocity_right = 1.0;
 
@@ -26,12 +26,12 @@ TEST(TestVelocities, MovingForward)
 
 TEST(TestVelocities, MovingBackwards)
 {
-    VehicleSettings settings{};
+    VehicleSettings settings        = 0 {};
     settings.active_wheels_distance = 0.4;
     settings.wheel_radius           = 0.5;
     settings.wheelbase_distance     = 0.1;
 
-    ControlCommand command{};
+    ControlCommand command       = 0 {};
     command.wheel_velocity_left  = -1.0;
     command.wheel_velocity_right = -1.0;
 
@@ -43,12 +43,12 @@ TEST(TestVelocities, MovingBackwards)
 
 TEST(TestVelocities, RotateAroundClockwise)
 {
-    VehicleSettings settings{};
+    VehicleSettings settings        = 0 {};
     settings.active_wheels_distance = 0.4;
     settings.wheel_radius           = 0.5;
     settings.wheelbase_distance     = 0.1;
 
-    ControlCommand command{};
+    ControlCommand command       = 0 {};
     command.wheel_velocity_left  = 1.0;
     command.wheel_velocity_right = -1.0;
 
@@ -60,12 +60,12 @@ TEST(TestVelocities, RotateAroundClockwise)
 
 TEST(TestVelocities, RotateAroundCounterClockwise)
 {
-    VehicleSettings settings{};
+    VehicleSettings settings        = 0 {};
     settings.active_wheels_distance = 0.4;
     settings.wheel_radius           = 0.5;
     settings.wheelbase_distance     = 0.1;
 
-    ControlCommand command{};
+    ControlCommand command       = 0 {};
     command.wheel_velocity_left  = -1.0;
     command.wheel_velocity_right = 1.0;
 
@@ -77,19 +77,19 @@ TEST(TestVelocities, RotateAroundCounterClockwise)
 
 TEST(TestIntegration, FacingNorthMovingFront)
 {
-    VehicleSettings settings{};
+    VehicleSettings settings        = 0 {};
     settings.active_wheels_distance = 0.4;
     settings.wheel_radius           = 0.5;
     settings.wheelbase_distance     = 0.1;
 
-    ControlCommand command{};
+    ControlCommand command       = 0 {};
     command.wheel_velocity_left  = 1.0;
     command.wheel_velocity_right = 1.0;
 
-    VehicleState2d state_init{};
-    state_init.x   = 0;
-    state_init.y   = 0;
-    state_init.yaw = M_PI_2;
+    VehicleState2d state_init = 0 {};
+    state_init.x              = 0;
+    state_init.y              = 0;
+    state_init.yaw            = M_PI_2;
 
     const auto state_new = integrate(state_init, 1.0, command, settings, 0.1);
     EXPECT_NEAR(state_new.x, state_init.x, POSITION_ERROR_TOLERANCE);
@@ -99,19 +99,19 @@ TEST(TestIntegration, FacingNorthMovingFront)
 
 TEST(TestIntegration, FacingNorthTurningLeft)
 {
-    VehicleSettings settings{};
+    VehicleSettings settings        = 0 {};
     settings.active_wheels_distance = 0.4;
     settings.wheel_radius           = 0.5;
     settings.wheelbase_distance     = 0.1;
 
-    ControlCommand command{};
+    ControlCommand command       = 0 {};
     command.wheel_velocity_left  = 0.0;
     command.wheel_velocity_right = 1.0;
 
-    VehicleState2d state_init{};
-    state_init.x   = 0;
-    state_init.y   = 0;
-    state_init.yaw = M_PI_2;
+    VehicleState2d state_init = 0 {};
+    state_init.x              = 0;
+    state_init.y              = 0;
+    state_init.yaw            = M_PI_2;
 
     const auto state_new = integrate(state_init, 1.0, command, settings, 0.1);
     EXPECT_LT(state_new.x, state_init.x);
@@ -121,19 +121,19 @@ TEST(TestIntegration, FacingNorthTurningLeft)
 
 TEST(TestIntegration, FacingNorthTurningRight)
 {
-    VehicleSettings settings{};
+    VehicleSettings settings        = 0 {};
     settings.active_wheels_distance = 0.4;
     settings.wheel_radius           = 0.5;
     settings.wheelbase_distance     = 0.1;
 
-    ControlCommand command{};
+    ControlCommand command       = 0 {};
     command.wheel_velocity_left  = 1.0;
     command.wheel_velocity_right = 0.0;
 
-    VehicleState2d state_init{};
-    state_init.x   = 0;
-    state_init.y   = 0;
-    state_init.yaw = M_PI_2;
+    VehicleState2d state_init = 0 {};
+    state_init.x              = 0;
+    state_init.y              = 0;
+    state_init.yaw            = M_PI_2;
 
     const auto state_new = integrate(state_init, 1.0, command, settings, 0.1);
     EXPECT_GT(state_new.x, state_init.x);

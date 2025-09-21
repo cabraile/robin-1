@@ -1,9 +1,11 @@
-import time
-import yaml
-import cv2
 import threading
-from picamera2 import Picamera2
+import time
 from pathlib import Path
+
+import cv2
+import yaml
+from picamera2 import Picamera2
+
 
 class CameraInterface:
     def __init__(self, settings_path: Path):
@@ -20,7 +22,9 @@ class CameraInterface:
         self.running = True
 
         self.cam = Picamera2()
-        config = self.cam.create_preview_configuration({"size": (self.width, self.height)})
+        config = self.cam.create_preview_configuration(
+            {"size": (self.width, self.height)}
+        )
         self.cam.configure(config)
         self.cam.start()
         self._thread = threading.Thread(target=self._picamera_loop, daemon=True)
