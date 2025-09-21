@@ -27,6 +27,7 @@ from flask import Flask, Response, jsonify, request, make_response
 from robin_py.platform.platform_interface import PlatformInterface
 import subprocess
 import logging
+import cv2
 
 # Load camera settings
 WORKSPACE_DIR = Path(__file__).parent.parent
@@ -44,6 +45,21 @@ log.setLevel(logging.WARNING)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 platform = PlatformInterface(settings_path=SETTINGS_PATH, logger=logger)
+
+# Initialize OpenCV video capture
+video_capture = cv2.VideoCapture(0)
+
+def generate_video_feed():
+    while True:
+        frame = platform.get_camera_snapshot()
+        if frame is None:
+            continue
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+@app.route("/video_feed")
+def video_feed():
+    return Response(generate_video_feed(), mimetype="multipart/x-mixed-replace; boundary=frame")
 
 @app.route("/cmd", methods=["POST"])
 def cmd():
