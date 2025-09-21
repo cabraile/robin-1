@@ -38,7 +38,10 @@ WORKSPACE_DIR = Path(__file__).parent.parent
 SETTINGS_PATH = WORKSPACE_DIR / "settings.yaml"
 LOGS_DIR = WORKSPACE_DIR / "robin_logs"
 LOGS_DIR.mkdir(exist_ok=True)
-LOGGER_OUTPUT_PATH = WORKSPACE_DIR / f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}_platform-interface.log"
+LOGGER_OUTPUT_PATH = (
+    WORKSPACE_DIR
+    / f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}_platform-interface.log"
+)
 DASHBOARD_HTML_PATH = (WORKSPACE_DIR / "html") / "dashboard.html"
 
 # Flask app
@@ -54,8 +57,8 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(),  # Ensure logs are sent to the console
-        logging.FileHandler("platform_interface.log")  # Optional: Log to a file
-    ]
+        logging.FileHandler("platform_interface.log"),  # Optional: Log to a file
+    ],
 )
 logger = logging.getLogger(__name__)
 platform = PlatformInterface(settings_path=SETTINGS_PATH, logger=logger)
@@ -179,23 +182,15 @@ def build():
 @app.route("/logs", methods=["GET"])
 def logs():
     try:
-        log_stream = io.StringIO()
-        handler = logging.StreamHandler(log_stream)
-        handler.setFormatter(
-            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-        )
-        logger.addHandler(handler)
-
-        # Emit a dummy log to flush current logs
-        logger.info("Fetching logs...")
-
-        logger.removeHandler(handler)
-        log_stream.seek(0)
-        logs = log_stream.read()
-
-        return jsonify({"success": True, "logs": logs})
+        log_path = Path("platform_interface.log")
+        if log_path.exists():
+            with open(log_path, "r") as f:
+                logs = f.read()
+            return jsonify({"success": True, "logs": logs})
+        else:
+            return jsonify({"success": False, "error": "Log file not found"}), 404
     except Exception as e:
-        return (jsonify({"success": False, "error": str(e)}), 500)
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route("/logger-level", methods=["POST"])
