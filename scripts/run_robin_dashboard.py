@@ -31,7 +31,6 @@ import cv2
 from flask import Flask, Response, jsonify, make_response, request
 
 from robin_py.platform.platform_interface import PlatformInterface
-import io
 
 # Load camera settings
 WORKSPACE_DIR = Path(__file__).parent.parent
@@ -89,8 +88,8 @@ def video_feed():
 @app.route("/cmd", methods=["POST"])
 def cmd():
     data = request.json
-    left = int(data.get("left", 0))
-    right = int(data.get("right", 0))
+    left = float(data.get("left", 0))
+    right = float(data.get("right", 0))
     platform.send_motor_command(left, right)
     return jsonify({"success": True})
 
