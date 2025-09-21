@@ -23,7 +23,7 @@ class MotorInterface:
         if intensity >= 0:
             self.motors[side].forward(intensity)
         else:
-            self.motors[side].backward(intensity)
+            self.motors[side].backward(abs(intensity))
 
     def activate(self, intensity_left: float, intensity_right: float):
         self.activate_by_id(MotorId.LEFT, intensity_left)

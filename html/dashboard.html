@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pi Platform Interface</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=700">
+    <style>
+        body { text-align: center; font-family: sans-serif; background: #f5f5f5; }
+        button { font-size: 24px; padding: 10px 20px; margin: 5px; }
+        #imuData { font-size: 18px; margin: 10px; }
+    </style>
+</head>
+<body>
+    <div>
+        <div id="cameraFeed">
+            <h1>Camera Feed</h1>
+            <img id="cameraImage" src="" alt="Camera Feed" style="width: 640px; height: 480px;"><br/>
+        </div>
+        <div id="botControls">
+            <h1>Teleop Controls</h1>
+            <button onclick="sendCommand('forward')">↑</button><br/>
+            <button onclick="sendCommand('left')">←</button>
+            <button onclick="sendCommand('stop')">⏹</button>
+            <button onclick="sendCommand('right')">→</button><br/>
+            <button onclick="sendCommand('backward')">↓</button><br/>
+        </div>
+        <div id="software">
+            <h1>Software Versioning</h1>
+            <button onclick="sendCommand('Update')">Update</button><br/>
+            <button onclick="sendCommand('Build')">Build</button><br/>
+        </div>
+        <div id="gitInfo">
+            <h1>Git Information</h1>
+            <p>Current Git Hash: <span id="gitHash">unknown</span></p>
+        </div>
+    </div>
+    <script>
+        function sendCommand(cmd) {
+            let left = 0.0, right = 0.0;
+            if (cmd === "forward") { left = 1.0; right = 1.0; }
+            else if (cmd === "backward") { left = -1.0; right = -1.0; }
+            else if (cmd === "left") { left = -1.0; right = 1.0; }
+            else if (cmd === "right") { left = 1.0; right = -1.0; }
+            else if (cmd === "stop") { left = 0.0; right = 0.0; }
+            fetch('/cmd', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({left: left, right: right})
+            });
+        }
+        function fetchCameraSnapshot() {
+            const element = document.getElementById('cameraImage');
+            element.hidden = false;
+            fetch('/camera')
+                .then(response => response.blob())
+                .then(blob => {
+                    if (blob.size > 0) {
+                        element.src = URL.createObjectURL(blob);
+                    }
+                });
+        }
+        function fetchGitHash() {
+            fetch('/git-hash')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('gitHash').innerText = data.git_hash;
+                });
+        }
+        function sendUpdateCommand() {
+            fetch('/update', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      alert('Update successful!');
+                      document.getElementById('gitHash').innerText = data.git_hash;
+                  } else {
+                      alert('Update failed!');
+                  }
+              });
+        }
+
+        function sendBuildCommand() {
+            fetch('/build', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+            }).then(response => {
+                if (response.ok) {
+                    alert('Build successful!');
+                } else {
+                    alert('Build failed!');
+                }
+            });
+        }
+        setInterval(fetchCameraSnapshot, 1000);
+        fetchGitHash();
+    </script>
+</body>
+</html>
