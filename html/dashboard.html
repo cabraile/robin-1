@@ -45,7 +45,10 @@
             <p>Current Git Hash: <span id="gitHash">unknown</span></p>
         </div>
         <div id="loggerLevel">
-            <h1>Logger Level</h1>
+        </div>
+        <div id="logs">
+            <h1>System Logs</h1>
+            Logger level
             <select id="loggerLevelDropdown" onchange="updateLoggerLevel()">
                 <option value="DEBUG">DEBUG</option>
                 <option value="INFO" selected>INFO</option>
@@ -53,9 +56,6 @@
                 <option value="ERROR">ERROR</option>
                 <option value="CRITICAL">CRITICAL</option>
             </select>
-        </div>
-        <div id="logs">
-            <h1>System Logs</h1>
             <div id="logConsole">
             </div>
         </div>

@@ -35,7 +35,6 @@ DASHBOARD_HTML_PATH = (WORKSPACE_DIR / "html") / "dashboard.html"
 
 # Flask app
 app = Flask(__name__)
-platform = PlatformInterface(settings_path=SETTINGS_PATH)
 
 # Disable Flask's default logging
 log = logging.getLogger('werkzeug')
@@ -44,6 +43,7 @@ log.setLevel(logging.WARNING)
 # Configure your own logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+platform = PlatformInterface(settings_path=SETTINGS_PATH, logger=logger)
 
 @app.route("/cmd", methods=["POST"])
 def cmd():
