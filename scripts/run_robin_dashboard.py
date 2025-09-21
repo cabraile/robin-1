@@ -120,6 +120,16 @@ def logs():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route("/logger-level", methods=["POST"])
+def set_logger_level():
+    data = request.json
+    level = data.get("level", "INFO").upper()
+    try:
+        logger.setLevel(level)
+        return jsonify({"success": True, "message": f"Logger level set to {level}"})
+    except ValueError:
+        return jsonify({"success": False, "error": f"Invalid logger level: {level}"}), 400
+
 if __name__ == "__main__":
     try:
         app.run(host="0.0.0.0", port=8000, threaded=True)

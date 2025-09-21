@@ -4,6 +4,7 @@ import time
 from enum import Enum
 from pathlib import Path
 from gpiozero import Motor
+import logging
 
 class MotorId:
     LEFT: int = 0
@@ -11,19 +12,22 @@ class MotorId:
 
 class MotorInterface:
 
-    def __init__(self, settings_path: Path):
+    def __init__(self, settings_path: Path, logger: logging.Logger | None = None):
         with open(settings_path, "r") as settings_file:
             settings_dict = yaml.load(settings_file, Loader=yaml.FullLoader)
         pinout_dict = settings_dict["pinout"]
         self.motors: list[Motor] = [None, None]
         self.motors[MotorId.LEFT] = Motor(pinout_dict["MOTOR_LEFT_PIN_1"], pinout_dict["MOTOR_LEFT_PIN_2"])
         self.motors[MotorId.RIGHT] = Motor(pinout_dict["MOTOR_RIGHT_PIN_1"], pinout_dict["MOTOR_RIGHT_PIN_2"])
+        self.logger = logger
 
     def activate_by_id(self, side: int, intensity: float) -> None:
         if intensity >= 0:
             self.motors[side].forward(intensity)
         else:
             self.motors[side].backward(abs(intensity))
+        if self.logger:
+            self.logger.debug(f"Motor {side} set to intensity {intensity}")
 
     def activate(self, intensity_left: float, intensity_right: float):
         self.activate_by_id(MotorId.LEFT, intensity_left)
