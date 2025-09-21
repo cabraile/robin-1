@@ -31,6 +31,7 @@ import cv2
 from flask import Flask, Response, jsonify, make_response, request
 
 from robin_py.platform.platform_interface import PlatformInterface
+import io
 
 # Load camera settings
 WORKSPACE_DIR = Path(__file__).parent.parent
@@ -114,11 +115,15 @@ def get_git_hash():
 @app.route("/update", methods=["POST"])
 def update():
     try:
-        subprocess.run(
+        logger.info("Starting update process...")
+        result_fetch = subprocess.run(
             ["git", "fetch", "origin", "main"],
             cwd=WORKSPACE_DIR,
             capture_output=True,
             text=True,
+        )
+        logger.info(
+            f"Fetched latest changes from origin/main. Output: {result_fetch.stdout}"
         )
         result = subprocess.run(
             ["git", "pull", "origin", "main"],
@@ -126,6 +131,7 @@ def update():
             capture_output=True,
             text=True,
         )
+        logger.info(f"Pulled latest changes. Output: {result.stdout}")
         if result.returncode == 0:
             new_hash = get_git_hash()
             return jsonify(
@@ -161,17 +167,23 @@ def build():
 @app.route("/logs", methods=["GET"])
 def logs():
     try:
-        result = subprocess.run(
-            ["journalctl", "-u", "robin", "--since", "20 minutes ago", "--no-pager"],
-            capture_output=True,
-            text=True,
+        log_stream = io.StringIO()
+        handler = logging.StreamHandler(log_stream)
+        handler.setFormatter(
+            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
         )
-        if result.returncode == 0:
-            return jsonify({"success": True, "logs": result.stdout})
-        else:
-            return jsonify({"success": False, "error": result.stderr}), 500
+        logger.addHandler(handler)
+
+        # Emit a dummy log to flush current logs
+        logger.info("Fetching logs...")
+
+        logger.removeHandler(handler)
+        log_stream.seek(0)
+        logs = log_stream.read()
+
+        return jsonify({"success": True, "logs": logs})
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        return (jsonify({"success": False, "error": str(e)}), 500)
 
 
 @app.route("/logger-level", methods=["POST"])
