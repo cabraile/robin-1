@@ -11,7 +11,15 @@ authors = [
 ]
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.11"
+dependencies = [
+    "black>=25.9.0",
+    "pre-commit>=4.3.0",
+    "ruff>=0.13.2",
+]
 
 [project.optional-dependencies]
 development = ["uv"]
+
+[tool.setuptools]
+py-modules = []

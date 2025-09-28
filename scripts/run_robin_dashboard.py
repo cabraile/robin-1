@@ -1,27 +1,3 @@
-"""This script runs on the Raspberry Pi, which is connected to Arduino via USB.
-The Arduino is connected to a pair of motors and exports the IMU data over seria.
-
-This script has the following roles
-* Receiving commands and data from the Flask client
-* Sending the motor commands to the Arduino and reading the IMU
-* Sending the IMU and camera data through flask
-* Displaying the existing info on the browser
-
-The client will be a Flask/ROS2 interface node.
-It will convert the received data from Flask to ROS2 (IMU and Image).
-
-The original serial interface is implemented in C++ under
-`src/robin_firmware/robin_firmware_cpp/include/robin_firmware_cpp/interface.hpp`.
-The twist callback command conversion is originally implemented in C++ under
-`src/robin_ros2/robin_ros2_cpp/src/robin_platform_interface_node.cpp` which
-goes through the same interface under `robin_firmware_cpp`.
-
-The camera interface is already implemented scripts/stream_pi_cam.py and must use the same configuration file
-in `settings.yaml`.
-
-Finally, this script will run everytime the Raspberry Pi boots up.
-"""
-
 import logging
 import subprocess
 import datetime
