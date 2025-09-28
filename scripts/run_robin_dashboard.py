@@ -1,6 +1,6 @@
+import datetime
 import logging
 import subprocess
-import datetime
 from pathlib import Path
 
 import cv2
@@ -51,7 +51,7 @@ def generate_video_feed():
         frame = platform.get_camera_snapshot()
         if frame is None:
             continue
-        yield (b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n")
+        yield (b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + frame + b"\r\n")
 
 
 @app.route("/video_feed")

@@ -12,7 +12,6 @@ class MotorId(Enum):
 
 
 class MotorInterface:
-
     def __init__(self, settings_path: Path, logger: logging.Logger | None = None):
         with open(settings_path, "r") as settings_file:
             settings_dict = yaml.load(settings_file, Loader=yaml.FullLoader)

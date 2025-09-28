@@ -9,4 +9,5 @@ format:
     black .
     echo "Formatting Python imports with isort..."
     isort .
+    ruff format .
     echo "Done."
